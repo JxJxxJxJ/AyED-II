@@ -19,7 +19,7 @@ list empty_list() { // CHECK c Fer
     Being l the returned list, is_empty(l) should be true.
 */
 
-list addl(elem e, list l) { // CHECK c Fer
+list addl(elem e, list l) {
   node *p;
   p = malloc(sizeof(node));
   p->elem = e;
