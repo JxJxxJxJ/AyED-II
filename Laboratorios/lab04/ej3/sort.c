@@ -45,13 +45,15 @@ static unsigned int partition(player_t a[], unsigned int izq,
     } else if (goes_before(a[ppiv], a[j])) {
       j = j - 1;
     } else if (!goes_before(a[i], a[ppiv]) && !goes_before(a[ppiv], a[j])) {
-      swap(&a[i], &a[j]);
+      swap(&a[i], &a[j]); // NOTE! Version 1 0.000811 seconds.
+      // swap(a, i, j); // NOTE! Version 2 0.000804 seconds.
       i = i + 1;
       j = j - 1;
     };
   };
 
-  swap(&a[ppiv], &a[j]);
+  swap(&a[ppiv], &a[j]); // NOTE! Version 1 0.000811 seconds.
+  // swap(a, ppiv, j); // NOTE! Version 2 0.000804 seconds.
   ppiv = j;
 
   return ppiv;
