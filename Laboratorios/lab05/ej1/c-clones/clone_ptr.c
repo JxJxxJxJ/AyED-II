@@ -95,13 +95,14 @@ int main(void) {
   // ===
   // string_length(original) / sizeof(*original) == string_length(original)
 
+  // OPCION 4: // ANDA _ la mejor
+  copy = string_clone(original, string_length(original));
   // Entiendo que la OPCION 1 no anda porque
   // sizeof(original) == 4 u 8 (es el tamaño del puntero en si), 8 en mi PC
   // porque es de x64 bits
-  // sizeof(*original) == 1, entonces no estoy tomando el largo total, sino 8
-  // solamente. Por eso al ejecutar el programa ignorando la warning imprime
-  // Copia   :
-  // A long t <-- Estos son 8 caracteres (bytes).
+  // sizeof(*original) == 1, entonces no estoy tomando el largo total, sino
+  // 8 solamente. Por eso al ejecutar el programa ignorando la warning
+  // imprime Copia   : A long t <-- Estos son 8 caracteres (bytes).
   printf("Original:\n" ANSI_CYAN " %s\n", original);
   copy[0] = 'A';
   copy[1] = ' ';
@@ -110,6 +111,8 @@ int main(void) {
   copy[4] = 'n';
   copy[5] = 'g';
   printf("Copia   :\n" ANSI_CYAN " %s\n", copy);
+
+  free(copy);
 
   return EXIT_SUCCESS;
 }
