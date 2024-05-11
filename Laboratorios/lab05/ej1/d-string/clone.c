@@ -5,31 +5,6 @@
 
 #define MAX_LENGTH 1820
 
-size_t string_length(const char *str) {
-  size_t size = 0;
-  for (unsigned i = 0; str[i] != '\0'; i++) {
-    size++;
-  }
-  return size;
-}
-
-char *string_clone(const char *str) {
-  char *clone = NULL;
-  size_t length = string_length(str);
-
-  clone = malloc(sizeof(char) * length + 1);
-
-  unsigned int i = 0u;
-  while (str[i] != '\0') {
-    clone[i] = str[i];
-    i++;
-  }
-
-  clone[i] = '\0';
-
-  return clone;
-}
-
 int main(void) {
   char original[] =
       ""
@@ -69,8 +44,9 @@ int main(void) {
       "                to    assist    the   overwhelmed\n"
       "                Jedi....\n" ANSI_WHITE;
   char *copy = NULL;
+  copy = malloc(sizeof(*copy) * strlen(original) + 1);
+  strcpy(copy, original);
 
-  copy = string_clone(original);
   printf("Original:\n" ANSI_CYAN " %s\n", original);
   copy[0] = 'A';
   copy[1] = ' ';
