@@ -69,6 +69,8 @@ int main(void) {
   copy[5] = 'g';
   printf("Copia   :\n" ANSI_CYAN " %s\n", copy);
 
+  free(copy);
+
   return EXIT_SUCCESS;
 }
 
