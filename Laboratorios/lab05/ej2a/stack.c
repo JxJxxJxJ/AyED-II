@@ -1,3 +1,6 @@
+// This seems to work, no mem leaks nor valgrind errors
+// after running
+
 #include "stack.h"
 #include <assert.h>
 #include <stdio.h>
@@ -12,7 +15,7 @@ typedef struct _s_stack {
 
 stack stack_empty() {
   stack s = NULL;
-  return s;
+  return s; // or just return NULL
 }
 
 stack stack_push(stack s, stack_elem e) { // Ask
@@ -20,7 +23,7 @@ stack stack_push(stack s, stack_elem e) { // Ask
   node *p;                                // travel pointer
 
   // create node
-  q = malloc(sizeof(stack));
+  q = malloc(sizeof(node));
   q->stack_elem = e;
   q->next = NULL;
 
@@ -36,8 +39,24 @@ stack stack_push(stack s, stack_elem e) { // Ask
   return s;
 }
 
-stack stack_pop(stack s) { // TODO
-  // codigo
+stack stack_pop(stack s) {    // Ask
+  assert(!stack_is_empty(s)); // stack_size != 0
+  node *q = NULL;
+  node *p = NULL;
+  p = s;
+  if (stack_size(s) == 1) {
+    s = stack_empty();
+    free(p);
+    p = NULL;
+  } else { // stack_size(s) >= 2
+    while ((p->next)->next != NULL) {
+      p = s;
+      p = p->next;
+    } // (p -> next) -> next == NULL
+  }
+  q = p->next;
+  p->next = NULL;
+  free(q);
   return s;
 }
 
@@ -61,10 +80,11 @@ stack_elem stack_top(stack s) { // ASK
   return p->stack_elem;
 }
 
-bool stack_is_empty(stack s) { return s == NULL; }
+bool stack_is_empty(stack s) { return s == stack_empty(); }
 
-stack_elem *stack_to_array(stack s) { // TODO
-  return &s->stack_elem;              // temporal
+stack_elem *stack_to_array(stack s) { // ASK
+  stack_elem *array = malloc(sizeof(*array) * stack_size(s));
+  return array;
 }
 
 stack stack_destroy(stack s) { // Ok
@@ -78,16 +98,21 @@ stack stack_destroy(stack s) { // Ok
 }
 
 void stack_dump(stack s, int a) {
-  printf("Stack %d:\n", a);
-  printf("   BOTTOM\n");
+  if (stack_size(s) == 0) {
+    printf("El stack esta vacio\n");
+  } else {
 
-  node *p;
-  p = s;
+    printf("Stack %d: (Size = %d)", a, stack_size(s));
+    printf("   BOTTOM\n");
 
-  while (p != NULL) {
-    printf("   | %d\n", p->stack_elem);
-    p = p->next;
+    node *p = NULL;
+    p = s;
+
+    while (p != NULL) {
+      printf("   | %d\n", p->stack_elem);
+      p = p->next;
+    }
+
+    printf("   TOP\n\n");
   }
-
-  printf("   TOP\n\n");
 }

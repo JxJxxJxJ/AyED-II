@@ -11,7 +11,7 @@ typedef struct node {
 
 /* Constructors */
 list empty_list() { // CHECK c Fer
-  list l = NULL;
+  list l = NULL;    // wrong?
   return l;
 }
 /*
