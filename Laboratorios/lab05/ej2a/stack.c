@@ -43,8 +43,8 @@ stack stack_push(stack s, stack_elem e) {
     @note Only applies to non-empty stacks
 */
 stack stack_pop(stack s) {
-  node *p = s;
-  node *q = p->next;
+  stack p = s;
+  stack q = p->next;
   free(p);
   return q;
 }
@@ -117,27 +117,26 @@ stack stack_destroy(stack s) {
   return p;
 }
 
-// TODO REMOVE
 void stack_dump(stack s, int a) {
-  if (stack_size(s) == 0) {
+  stack p = s;
+
+  if (stack_is_empty(p)) {
     printf("El stack esta vacio\n");
-  } else {
+  }
 
-    printf("Stack %d: (Size = %d)\n", a, stack_size(s));
-    printf("   BOTTOM\n");
-
-    node *p = NULL;
-    p = s;
-
-    while (p != NULL) {
-      printf("   | %d\n", p->top);
+  else {
+    printf("Stack %d: (Size = %d)\n", a, stack_size(p));
+    printf("   TOP\n");
+    while (!stack_is_empty(p)) {
+      printf("   | %d\n", stack_top(p));
       p = p->next;
+      // p = stack_pop(p); // TODO ASK por que me falla hacer esto
     }
-
-    printf("   TOP\n\n");
+    printf("   BOTTOM\n\n");
   }
 }
 
+// --------------------------------------------------------------------
 // TODO Reversed stack, preguntar
 
 // stack stack_empty() {
