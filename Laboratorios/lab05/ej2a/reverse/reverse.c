@@ -41,6 +41,31 @@ char *parse_filepath(int argc, char *argv[]) {
   return (result);
 }
 
+int *reverse_array_using_stack(int *array, unsigned int length) {
+  int *new_array;
+
+  stack s = stack_empty();
+  stack s_reversed = stack_empty();
+
+  for (unsigned int i = 0; i < length; i++) {
+    int elem = array[i];
+    s = stack_push(s, elem);
+  }
+
+  for (unsigned int i = 0; i < length; i++) {
+    int elem = stack_top(s);
+    s_reversed = stack_push(s_reversed, elem);
+    s = stack_pop(s);
+  }
+
+  new_array = stack_to_array(s_reversed);
+
+  s = stack_destroy(s);
+  s_reversed = stack_destroy(s_reversed);
+
+  return new_array;
+}
+
 int main(int argc, char *argv[]) {
   char *filepath = NULL;
 
@@ -56,12 +81,15 @@ int main(int argc, char *argv[]) {
   array_dump(array, length);
 
   int *new_array = NULL;
-  /**
-   *
-   *  --- COMPLETAR ----
-   *
-   */
+
+  // TODO ------------------------------------- WORKS
+  new_array = reverse_array_using_stack(
+      array, length); // allocates memory for array (***)
+  // ------------------------------------------
+  //
   printf("Reversed: ");
   array_dump(new_array, length);
+
+  free(new_array); // frees memory of array (***)
   return (EXIT_SUCCESS);
 }

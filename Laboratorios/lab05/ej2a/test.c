@@ -1,31 +1,45 @@
+#include "stack.h"
+#include <stdbool.h>
 #include <stdio.h>
 
-#include "stack.h"
-
 int main() {
+  printf("Inicializo el stack en stack_empty para comenzar a realizar los "
+         "testeos\n");
   stack s = stack_empty();
-  stack_dump(s, 0);
 
-  printf("El stack %s\n", (stack_is_empty(s) ? "esta vacio" : "NO esta vacio"));
-
-  s = stack_push(s, 1);
+  printf("-------------------------------------------------\n");
+  printf("Test Case 1: stack_pop() sobre una pila de tamaño 1\n"); // TEST OK
+  s = stack_empty();
+  s = stack_push(s, 4);
+  printf("Stack con 1 elemento: \n");
   stack_dump(s, 1);
+  printf("Hago stack_pop al stack con 1 elemento: \n");
+  s = stack_pop(s);
+  stack_dump(s, 1);
+  printf("-------------------------------------------------\n");
 
-  stack_pop(s);
+  s = stack_destroy(s);
+
+  printf("----------------------------------------\n");
+  printf("Test Case 2: stack_push() a una pila vacia\n"); // TEST OK
+  s = stack_empty();
+  printf("Stack vacio con 0 elementos");
   stack_dump(s, 2);
+  printf("Hago stack_push");
+  s = stack_push(s, 4);
+  stack_dump(s, 2);
+  printf("----------------------------------------\n");
 
-  s = stack_push(s, 2);
-  s = stack_push(s, 3);
-  stack_dump(s, 3);
+  s = stack_destroy(s);
 
-  stack_pop(s);
-  stack_dump(s, 4);
-  stack_pop(s);
-  stack_dump(s, 4);
-  stack_pop(s);
-  stack_dump(s, 4);
-
-  stack_destroy(s);
-
+  printf("----------------------------------------------------------\n");
+  printf("Test Case 3: stack_to_array() da NULL en la pila vacia? \n"
+         "Devuelve los elementos en el orden correcto?\n"); // TEST OK
+  s = stack_empty();
+  printf("Stack vacio con 0 elementos\n");
+  printf("Hago stack_to_array\n");
+  stack_elem *array = stack_to_array(s);
+  printf("La direccion de array es %p\n", (void *)array);
+  printf("----------------------------------------------------------\n");
   return 0;
 }
