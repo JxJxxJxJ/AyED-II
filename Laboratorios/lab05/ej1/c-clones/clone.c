@@ -74,6 +74,70 @@ int main(void) {
   return EXIT_SUCCESS;
 }
 
-// no se que hice, simplemente le di el espacio suficiente (length + 1, 1 para
-// el '\0') y se soluciono. Supongo que el problema era acceder afuera de lo que
-// me dio el SO
+/* EXPLICACION
+
+ Inicialmente el ejercicio comienza asi.
+
+ char *string_clone(const char *str, size_t length) {
+   char clon[MAX_LENGTH]; // Es una variable local que vive en el stack
+   char *output = clon;   // Apunta a una variable del stack
+  for (size_t i = 0; i < length; i++) {
+    output[i] = str[i];
+  }
+  output[length] = '\0';
+  return output; // Output points to an address in the heap
+}
+
+El problema aqui es que clon[MAX_LENGTH] termina siendo un string local a la
+funcion, es decir vive y muere en el stack.
+
+Ademas, char *output seria un puntero a ese string, una vez la funcion muere, el
+string del stack no existe mas entonces el puntero estaria apuntando a memoria
+que ya no almacena el string que yo queria devolver.
+
+Para solucionarlo hago que el output de la funcion sea un puntero a memoria
+dinamica en el heap, cosa que al final de la funcion ese resultado que calcule
+persista y no muera al retornar la funcion.
+
+Inicialmente podria intentar hacer esto
+
+ char *string_clone(const char *str, size_t length) {
+   char *output = malloc(sizeof(*output) * length)
+  for (size_t i = 0; i < length; i++) {
+    output[i] = str[i];
+  }
+  output[length] = '\0';
+  return output;
+}
+
+Aqui reserve length bytes es decir voy desde output[0] hasta output[length-1].
+Como todo string debe terminar con el caracter nulo, al hacer output[length]
+Valgrind me diria `invalid write of size 1` porque efectivamente estaria
+solamente escribiendo 1 byte en memoria que no me pertenece.
+
+Como yo quiero hacer un string valido que termine con el caracter nulo '\0'
+entonces me gustaria poder escribir sobre la posicion output[length] que es el
+byte length+1 si comienzo a contar desde el 0.
+
+Para ello hago
+
+  char *string_clone(const char *str, size_t length) {
+    char *output = malloc(sizeof(*output) * length + 1) for (size_t i = 0;
+                                                             i < length; i++) {
+      output[i] = str[i];
+    }
+    output[length] = '\0';
+    return output;
+  }
+
+Notar que ahora cada vez que yo llamo a string_clone() estare reservando memoria
+en el heap que luego sera responsabilidad mia desalocar, es por eso que al final
+del programa hago
+
+  char *copy = NULL;
+  copy = string_clone(original,
+                      sizeof(original) / sizeof(*original)); // ALLOCATES MEMORY
+  // ...
+  free(copy); // FREES MEMORY
+
+*/
