@@ -16,18 +16,7 @@ struct _s_stack {
 };
 
 bool invrep(stack s) {
-  assert(s != NULL); // NOTE VERSION 1
-  bool b_invrep =
-      s->size == stack_size(s) && s->size <= s->capacity; // NOTE VERSION 1
-
-  // bool b_invrep = true; // NOTE VERSION 2
-  // if (s != NULL) {
-  //   b_invrep = s->size == stack_size(s) && s->size <= s->capacity;
-  // }
-  // else {
-  // ??????
-  // }
-
+  bool b_invrep = s->size == stack_size(s) && s->size <= s->capacity;
   return b_invrep;
 }
 
@@ -143,9 +132,7 @@ stack stack_destroy(stack s) {
   s->elems = NULL;
   free(s);
   s = NULL;
-
-  // assert(invrep(s)); // NOTE VERSION 1 YES COMMENT
-  // assert(invrep(s)); // NOTE VERSION 2 NO COMMENT
+  // no debo chequear invrep porque la instancia no existe ya
   return s;
 }
 
