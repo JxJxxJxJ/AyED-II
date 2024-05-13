@@ -5,17 +5,17 @@
 
 #define MAX_LENGTH 1820
 
-char *string_clone(const char *str,
-                   size_t length) { // debo reservar memoria, sino accedo a
-                                    // memoria que no se me permitio acceder
-  // char clon[MAX_LENGTH];
-  // char *output = clon;
-  char *output = malloc(sizeof(char) * length + 1);
+char *string_clone(const char *str, size_t length) {
+  // char clon[MAX_LENGTH]; // Es una variable local que vive en el stack
+  // char *output = clon;   // Apunta a una variable del stack
+  // FIX DOWN BELOW
+  // Now outputs points to the heap
+  char *output = malloc(sizeof(*output) * length + 1);
   for (size_t i = 0; i < length; i++) {
     output[i] = str[i];
   }
   output[length] = '\0';
-  return output;
+  return output; // Output points to an address in the heap
 }
 
 int main(void) {
@@ -57,9 +57,9 @@ int main(void) {
       "                to    assist    the   overwhelmed\n"
       "                Jedi....\n" ANSI_WHITE;
   char *copy = NULL;
+  copy = string_clone(original,
+                      sizeof(original) / sizeof(*original)); // ALLOCATES MEMORY
 
-  // copy = string_clone(original, sizeof(original) / sizeof(*original));
-  copy = string_clone(original, sizeof(original) / sizeof(*original));
   printf("Original:\n" ANSI_CYAN " %s\n", original);
   copy[0] = 'A';
   copy[1] = ' ';
@@ -69,7 +69,7 @@ int main(void) {
   copy[5] = 'g';
   printf("Copia   :\n" ANSI_CYAN " %s\n", copy);
 
-  free(copy);
+  free(copy); // FREES MEMORY
 
   return EXIT_SUCCESS;
 }
