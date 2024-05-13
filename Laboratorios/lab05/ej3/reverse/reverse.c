@@ -41,29 +41,21 @@ char *parse_filepath(int argc, char *argv[]) {
   return (result);
 }
 
-int *reverse_array_using_stack(int *array, unsigned int length) {
-  int *new_array;
+int *reverse_array_using_stack(int *array, unsigned int length) { // NOTE NEW
+  int *new_array = malloc(sizeof(*new_array) * length);
+  stack s = stack_empty(); // 1. Crear una pila vacia
 
-  stack s = stack_empty();          // ALLOCATES MEMORY
-  stack s_reversed = stack_empty(); // ALLOCATES MEMORY
+  for (unsigned int i = 0; i < length; i++) { // 2. Iterar de iz a derecha
+    s = stack_push(s, array[i]);              // poniendo los elementos del
+  }                                           // arreglo en el stack
 
-  for (unsigned int i = 0; i < length; i++) {
-    int elem = array[i];
-    s = stack_push(s, elem);
+  for (unsigned int i = 0; i < length; i++) { // 3.4. Pongo los elementos en el
+    new_array[i] = stack_top(s);              // nuevo arreglo, terminan estan
+    s = stack_pop(s);                         // do todos invertidos
   }
 
-  for (unsigned int i = 0; i < length; i++) {
-    int elem = stack_top(s);
-    s_reversed = stack_push(s_reversed, elem);
-    s = stack_pop(s);
-  }
-
-  new_array = stack_to_array(s_reversed);
-
-  s = stack_destroy(s);                   // FREES MEMORY
-  s_reversed = stack_destroy(s_reversed); // FREES MEMORY
-
-  return new_array;
+  s = stack_destroy(s);
+  return new_array; // new_array lives on the heap
 }
 
 int main(int argc, char *argv[]) {
