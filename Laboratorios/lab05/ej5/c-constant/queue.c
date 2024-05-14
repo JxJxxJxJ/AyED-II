@@ -189,8 +189,8 @@ killme -----------------------------------------^
 // TIEMPOS DE EJECUCION QUEUE DEQUEUE CONSTANTES VS DEQUEUE LINEAL
 /*
 c-constant
-    ./readqueue ../input/unsorted-200000.in
-    0,03s user 0,01s system 31% cpu 0,141 total
+    ./readqueue ../input/unsorted-100000.in
+    0,02s user 0,00s system 35% cpu 0,065 total
 
     ./readqueue ../input/unsorted-200000.in
     0,03s user 0,01s system 26% cpu 0,157 total
