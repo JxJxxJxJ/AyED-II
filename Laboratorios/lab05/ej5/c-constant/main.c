@@ -38,7 +38,6 @@ char *parse_filepath(int argc, char *argv[]) {
     print_help(argv[0]);
     exit(EXIT_FAILURE);
   }
-
   result = argv[1];
 
   return result;
