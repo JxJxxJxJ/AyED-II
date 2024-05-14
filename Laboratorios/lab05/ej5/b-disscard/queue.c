@@ -144,7 +144,7 @@ queue queue_disscard(queue q, unsigned int n) {
     }
     struct s_node *killme = p->next;
     p->next = killme->next;
-    free(killme);
+    destroy_node(killme);
   }
 
   q->size--; // preserves the invariant
