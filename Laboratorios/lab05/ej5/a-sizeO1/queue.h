@@ -2,9 +2,10 @@
 #define _QUEUE_H_
 
 #include <stdbool.h>
+#include <stdio.h> // NOTE Needed for FILE * type
 #include <stdlib.h>
 
-typedef struct s_queue * queue;
+typedef struct s_queue *queue;
 
 typedef int queue_elem;
 
@@ -67,7 +68,6 @@ void queue_dump(queue q, FILE *file);
  *  q = queue_dump(q, file);
  *
  */
-
 
 queue queue_destroy(queue q);
 /*

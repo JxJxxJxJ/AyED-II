@@ -35,13 +35,12 @@ static struct s_node *destroy_node(struct s_node *node) {
 }
 
 static bool invrep(queue q) {
-  return q !=
-         NULL /*  && q->size == queue_size(q) */; // NOTE (***) Me gustaria
-                                                  // fortalecer la invariante de
-                                                  // representacion con esto
-                                                  // pero me da stack
-                                                  // overflow..., esta bien no
-                                                  // fortalecerla?
+  return q != NULL && q->size == queue_size(q); // NOTE (***) Me gustaria
+                                                // fortalecer la invariante de
+                                                // representacion con esto
+                                                // pero me da stack
+                                                // overflow..., esta bien no
+                                                // fortalecerla?
 }
 
 queue queue_empty(void) { // NOTE ALLOCATES MEMORY
@@ -53,7 +52,9 @@ queue queue_empty(void) { // NOTE ALLOCATES MEMORY
 }
 
 // Agrego un elemento al final de la cola
-queue queue_enqueue(queue q, queue_elem e) {
+queue queue_enqueue(queue q, queue_elem e) { // NOTE Must
+                                             // preserve q->size
+                                             // invariant
   assert(invrep(q));
   struct s_node *new_node = create_node(e);
   new_node->elem = e;    // El nodo
@@ -67,12 +68,13 @@ queue queue_enqueue(queue q, queue_elem e) {
     }
     p->next = new_node;
   }
+  q->size++;
   assert(invrep(q) && !queue_is_empty(q));
   return q;
 }
 
 bool queue_is_empty(queue q) {
-  assert(invrep(q));
+  assert(invrep(q)); // NOTE
   return q->first == NULL;
 }
 
@@ -80,23 +82,20 @@ queue_elem queue_first(queue q) {
   assert(invrep(q) && !queue_is_empty(q));
   return q->first->elem;
 }
-unsigned int queue_size(queue q) {
-  assert(invrep(q));
-  unsigned int size = 0;
-  if (queue_is_empty(q)) {
-    size = 0;
-  } else {
-    size = q->size;
-  }
 
+unsigned int queue_size(queue q) {
+  // assert(invrep(q)); // NOTE (**) Adds stack overflow
+  unsigned int size = 0;
+  size = q->size;
   return size;
 }
 
-queue queue_dequeue(queue q) {
+queue queue_dequeue(queue q) { // NOTE Must preserve q->size invariant
   assert(invrep(q) && !queue_is_empty(q));
   struct s_node *killme = q->first;
   q->first = q->first->next;
   killme = destroy_node(killme);
+  q->size--;
   assert(invrep(q));
   return q;
 }
