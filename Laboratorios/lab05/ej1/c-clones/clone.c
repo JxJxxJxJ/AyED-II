@@ -59,6 +59,9 @@ int main(void) {
   char *copy = NULL;
   copy = string_clone(original,
                       sizeof(original) / sizeof(*original)); // ALLOCATES MEMORY
+  // Como original es un arreglo estatico (l:22) entonces sizeof(original) me da
+  // la longitud del arreglo, si divido por sizeof(*original) entonces divido
+  // por el peso de cada caracter, me da 1812 / 1 bytes = 1812bytes
 
   printf("Original:\n" ANSI_CYAN " %s\n", original);
   copy[0] = 'A';
