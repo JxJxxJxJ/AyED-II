@@ -1,169 +1,154 @@
 #include "stack.h"
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _s_stack {
-  stack_elem top;
-  struct _s_stack *next;
-  size_t size; // Invariante de representacion,
-               // size siempre mantiene el size
-               // del stack, siempre >= 0
-} node;
+#include <stdio.h> // TODO REMOVE
+
+#define INITIAL_CAPACITY 10 // arbitrario
+
+struct _s_stack {
+  stack_elem *elems;     // Arreglo de elementos
+  unsigned int size;     // Cantidad de elementos en la pila
+  unsigned int capacity; // Capacidad actual del arreglo elems
+  // Invrep:
+  // s->size ==  stack_size(s);
+  // s->size <= s->capacity
+};
 
 bool invrep(stack s) {
-  return s->size == stack_size(s);
-} // Invariante de representacion, s -> size siempre representara el tama;o
+  bool b_invrep = s->size == stack_size(s) && s->size <= s->capacity;
+  return b_invrep;
+}
 
-#include "stack.h"
-
-/*
-    @brief Creates an empty stack
-    @return An empty stack
-*/
-stack stack_empty() {
-  node *s = malloc(sizeof(*s));
+/**
+ * @brief Creates an empty stack
+ * @return An empty stack
+ */
+stack stack_empty() { // Allocates memory for the struct only
+  stack s = malloc(sizeof(*s));
+  s->elems = NULL;
   s->size = 0;
-  s->next = NULL;
-
+  s->capacity = INITIAL_CAPACITY;
   assert(invrep(s));
   return s;
 }
 
-/*
-    @brief Inserts an element at the top of the stack
-    @param s A stack
-    @param e An element to push into the stack
-    @return The new stack with 'e' at the top
-*/
+/**
+ * @brief Inserts an element at the top of the stack
+ * @param s A stack
+ * @param e An element to push into the stack
+ * @return The new stack with 'elem' at the top
+ */
 stack stack_push(stack s, stack_elem e) {
   assert(invrep(s));
-  node *p = NULL;
+  size_t array_slot_size = s->capacity * sizeof(*s->elems);
 
-  // creo nodo
-  p = malloc(sizeof(*p));
-  p->top = e;
-  p->next = s;
-  p->size = s->size + 1; // Mantengo invrep
+  if (stack_is_empty(s)) {
+    s->elems = realloc(s->elems, array_slot_size); // doubles array's
+  }
 
-  assert(invrep(p)); // TODO (**) ASK
-  return p;
-}
+  else if (!stack_is_empty(s)) {
+    if (s->size == s->capacity) { // ask for more memory if needed for the array
+      s->elems = realloc(s->elems, array_slot_size * 2); // doubles array's
+      s->capacity = s->capacity * 2;                     // capacity
+    };
+  }
 
-/*
-    @brief Removes the element at the top of the stack
-    @param s A stack
-    @return The new stack with the top element removed
-    @note Only applies to non-empty stacks
-*/
-stack stack_pop(stack s) {
+  s->elems[s->size] = e; // adds element onto the array;
+  s->size++;             // preserves invrep(s)
   assert(invrep(s));
-  assert(!stack_is_empty(s));
-
-  stack p = s;
-  stack q = p->next;
-  q->size = s->size - 1; // Mantengo invrep
-  free(p);
-  p = NULL;
-
-  assert(invrep(q)); // TODO (**) ASK
-  return q;
+  return s;
 }
 
-/*
-    @brief Returns the size of the stack
-    @param s A stack
-    @return The size of the stack
-*/
+/**
+ * @brief Removes the element at the top of the stack
+ * @param s A stack
+ * @return The new stack with the top element removed
+ * @note Only applies to non-empty stacks
+ */
+stack stack_pop(stack s) { // pop [4]
+  assert(!stack_is_empty(s));
+  assert(invrep(s));
+  s->elems[s->size - 1] = 0; // "deletes" element placing 0, unnecessary
+  s->size--;                 // preserves invrep(s)
+  assert(invrep(s));
+  return s;
+}
+
+/**
+ * @brief Returns the size of the stack
+ * @param s A stack
+ * @return The size of the stack
+ */
 unsigned int stack_size(stack s) { return s->size; }
 
-/*
-    @brief Returns the element at the top of the stacks
-    @param s A stacks
-    @return The element at the top of the stack
-    @note Only applies to non-empty stacks
-*/
+/**
+ * @brief Returns the element at the top of the stacks
+ * @param s A stacks
+ * @return The element at the top of the stack
+ * @note Only applies to non-empty stacks
+ */
 stack_elem stack_top(stack s) {
   assert(invrep(s));
   assert(!stack_is_empty(s));
-
-  return s->top;
+  return s->elems[s->size - 1]; // [e] has e in position 0, but has size 1
 }
 
-/*
-    @brief Check if the given stack is empty
-    @param s A stack
-    @return true if the stack is empty, false otherwise
-*/
+/**
+ * @brief Check if the given stack is empty
+ * @param s A stack
+ * @return true if the stack is empty, false otherwise
+ */
 bool stack_is_empty(stack s) {
   assert(invrep(s));
   return s->size == 0;
 }
 
-/*
-    @brief Creates an array with all the elements of the stack
-    @param s A stack
-    @return An array containing all the elements of the stack. The stack top
-    element becomes the rightmost element of the array. The size of the
-    resulting array is determined by 'stack_size(s)'
-*/
+/**
+ * @brief Creates an array with all the elements of the stack
+ * @param s A stack
+ * @return An array containing all the elements of the stack. The stack top
+ * element becomes the rightmost element of the array. The size of the
+ * resulting array is determined by 'stack_size(s)'
+ */
 stack_elem *stack_to_array(stack s) {
   assert(invrep(s));
-
-  stack_elem *array = NULL;
-
-  if (!stack_is_empty(s)) {
-    array = calloc(stack_size(s), sizeof(*array));
-    node *p = s;
-    for (unsigned int i = stack_size(s); i > 0; i--) {
-      array[i - 1] = p->top;
-      p = p->next;
-    }
+  stack_elem *array = malloc(sizeof(*array) * stack_size(s));
+  for (unsigned int i = 0; i < stack_size(s); i++) {
+    array[i] = s->elems[i];
   }
-
   assert(invrep(s));
-  return array;
+  return array; // dynamic array, must free later
 }
 
-/*
-    @brief Destroys the stack
-    @param s A stack
-    @note All memory resources are freed
-*/
+/**
+ * @brief Destroys the stack
+ * @param s A stack
+ * @note All memory resources are freed
+ */
 stack stack_destroy(stack s) {
   assert(invrep(s));
-
-  stack p = s;
-  while (!stack_is_empty(p)) {
-    p = stack_pop(p); // Desaloca memoria de todos los nodos excepto el vacio
-  }
-
-  assert(invrep(p)); // TODO (**) ASK
-  free(p);           // <-- SI AGREGO ESTAS
-  p = NULL;          // <-- DOS LINEAS SE ARREGLA
-  // Debo agregar estas dos lineas porque mi stack_empty() ahora aloca memoria,
-  return p;
+  free(s->elems);
+  s->elems = NULL;
+  free(s);
+  s = NULL;
+  // no debo chequear invrep porque la instancia no existe ya
+  return s;
 }
 
+// TODO REMOVE
+
 void stack_dump(stack s, int a) {
-  assert(invrep(s));
-
-  stack p = s;
-
-  if (stack_is_empty(p)) {
-    printf("El stack esta vacio\n");
-  }
-
-  else {
-    printf("Stack %d: (Size = %d)\n", a, stack_size(p));
+  if (stack_is_empty(s)) {
+    printf("El stack está vacío\n");
+  } else {
+    printf("Stack %d: (Size = %d)\n", a, stack_size(s));
     printf("   TOP\n");
-    while (!stack_is_empty(p)) {
-      printf("   | %d\n", stack_top(p));
-      p = p->next;
-      // p = stack_pop(p); // TODO ASK por que me falla hacer esto
+    stack_elem *array = stack_to_array(s);
+    for (int i = stack_size(s) - 1; i >= 0; i--) {
+      printf("   | %d\n", array[i]);
     }
+    free(array);
     printf("   BOTTOM\n\n");
   }
-
-  assert(invrep(s));
 }
