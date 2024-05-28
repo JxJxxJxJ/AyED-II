@@ -269,16 +269,16 @@ tape_t tape_copy(tape_t tape) {
   assert(invrep(tape));
 
   node_t cursor_original = tape->cursor;
-  tape->cursor = tape->start;
+  tape = tape_rewind(tape);
 
   tape_t copy = tape_create();
   while (!tape_at_stop(tape)) {
-    tape_insertr(copy, tape_read(tape));
+    copy = tape_insertr(copy, tape_read(tape)); 
     tape = tape_step(tape);
   }
 
   tape->cursor = cursor_original;
-  copy->cursor = copy->start;
+  copy = tape_rewind(copy);
 
   assert(invrep(tape));
   assert(copy != tape);
@@ -295,9 +295,9 @@ tape_t tape_copy(tape_t tape) {
  * POST: {tape == NULL}
  *
  */
-tape_t tape_destroy(tape_t tape) { // TODO parece que solo falla esto..
+tape_t tape_destroy(tape_t tape) { 
   assert(invrep(tape));
-  tape->cursor = tape->start;
+  tape = tape_rewind(tape);
   node_t killme = NULL;
   while (!tape_at_stop(tape)) {
     killme = tape->cursor;
@@ -306,7 +306,6 @@ tape_t tape_destroy(tape_t tape) { // TODO parece que solo falla esto..
   }
   free(tape);
   tape = NULL;
-
   assert(tape == NULL);
   return tape;
 }
