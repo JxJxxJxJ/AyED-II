@@ -43,9 +43,9 @@ static bool invrep(pstack s) { return s != NULL; }
 pstack pstack_empty(priority_t max_priority) { // ALOCA MEMORIA
   pstack s = malloc(sizeof(*s));
   s->max_priority = max_priority;
-  s->size = 0;
-  s->elems = calloc(sizeof(s->elems),
-                    s->max_priority + 1); // Lo inicializo en 0s o NULL
+  s->size = 0u;
+  s->elems =
+      calloc(max_priority + 1, sizeof(*s->elems)); // Lo inicializo en 0s o NULL
   assert(invrep(s));
   assert(pstack_is_empty(s));
   return s;
@@ -63,7 +63,6 @@ pstack pstack_empty(priority_t max_priority) { // ALOCA MEMORIA
 pstack pstack_push(pstack s, pstack_elem e, priority_t priority) { // TODO check
   assert(invrep(s));
   assert(priority <= s->max_priority);
-  struct s_node *nodo = create_node(e); // ALOCA MEMORIA
   /*
   s-------->   {elems            size               max_priority}
           --------+--------
@@ -76,18 +75,10 @@ pstack pstack_push(pstack s, pstack_elem e, priority_t priority) { // TODO check
           '-----> [200 | ] -> [100 | ] -> NULL
           p--------------------^
   */
+  struct s_node *nodo = create_node(e); // ALOCA MEMORIA
 
-  if (s->elems[priority] != NULL) {
-
-    struct s_node *p = s->elems[priority]; // Aqui guardo la direccion del viejo
-                                           // top de esa priority
-    s->elems[priority]->elem = nodo->elem;
-    s->elems[priority]->next = p;
-  }
-
-  else if (s->elems[priority] == NULL) {
-    s->elems[priority] = nodo;
-  }
+  nodo->next = s->elems[priority];
+  s->elems[priority] = nodo;
 
   s->size++;
   assert(invrep(s));
@@ -132,26 +123,15 @@ priority_t pstack_top_priority(pstack s) {
   assert(invrep(s));
   assert(!pstack_is_empty(s));
 
-    unsigned int max = 0u;
-    for (unsigned int i = 0; i <= s->max_priority; i++) {
-      if (s->elems[i] != NULL) {
-        max = i;
-      } else if (s->elems[i] == NULL) {
-        // skip
-      }
+  unsigned int max = 0u;
+  for (unsigned int i = 0; i <= s->max_priority; i++) {
+    if (s->elems[i] != NULL) {
+      max = i;
     }
-
-//   int i = s->max_priority;
-//   while (i >= 0) {
-//     if (s->elems[i] != NULL) {
-//       return s->elems[i]->elem;
-//     }
-//     i--;
-//   }
-//   return 0;
+  }
 
   assert(invrep(s));
-    return max;
+  return max;
 }
 
 /*
