@@ -4,48 +4,53 @@
 #include <stdlib.h>
 
 struct _dict_t {
-  size_t size;
   node_t words;
-  node_t definitions;
+  node_t defs;
+  unsigned int length;
 };
 
 struct _node_t {
-  string text;
+  string str;
   node_t next;
 };
 
 static bool invrep(dict_t d) {
-  bool b = false;
-  if (d != NULL) {
-    b = true;
-  };
+  bool b = true;
+  if (d == NULL) {
+    b = false;
+  } else if (dict_is_empty(d)) {
+    b = d->length == 0;
+  } else {
+    node_t p = d->words;
+    node_t q = d->defs;
 
-  if (dict_length(d) == 0) {
-    b = d->words == NULL && d->definitions == NULL;
+    while (p->next != NULL) {
+
+      if (!string_less(p->str, p->next->str)) {
+        return false; // devuelvo false si no esta ordenado segun string_less
+      }
+      p = p->next;
+      q = q->next;
+
+      if ((p == NULL && q != NULL) || (q == NULL && p != NULL)) {
+        return false; // devuelvo false si no tengo misma cantidad de defs que
+                      // words
+      }
+    }
   }
-
   return b;
 }
 
 // returns the amount of nodes to skip when adding a new word
 static int nodes_to_skip(dict_t dict, string word) {
+  assert(invrep(dict));
   unsigned int numberToSkip = 0;
-  node_t p = dict->words;
 
-  // bool b = false;
-
-  if (dict_length(dict) == 0) {
-    numberToSkip = 0;
+  node_t node = dict->words;
+  while (node != NULL && string_less(node->str, word)) {
+    numberToSkip++;
+    node = node->next;
   }
-
-  else
-    while (p != NULL) {
-      if (string_less(p->text, word)) {
-        numberToSkip++;
-        p = p->next;
-      }
-    }
-
   return numberToSkip;
 }
 
@@ -53,163 +58,229 @@ static int nodes_to_skip(dict_t dict, string word) {
 // node) returns -1 if the word is not on the dict
 static int find_index_of_key(dict_t dict, string word) {
   int index = 0;
-  bool found = false;
 
-  node_t p = dict->words;
+  node_t nodo = dict->words;
 
-  size_t i = 0;
-  while (!found && i < dict->size) {
-    if (!string_eq(p->text, word)) {
-      index++;
-      p = p->next;
-    } else if (string_eq(p->text, word)) {
-      found = true;
+  while (nodo != NULL) {
+    if (string_eq(word, nodo->str)) {
+      // si encuentro la palabra en el dict, devuelvo el index actual
+      return index;
     }
-    i++;
+    index++;
+    nodo = nodo->next;
   }
-  return (found) ? index : -1;
+
+  // a este return solamente llego si no encontre la palabra en el dict
+  return -1;
 }
 
 dict_t dict_empty(void) {
-  dict_t dict = malloc(sizeof(*dict));
-  dict->definitions = NULL;
+  dict_t dict = NULL;
+  dict = malloc(sizeof(*dict));
+  assert(dict != NULL);
+  dict->length = 0u;
   dict->words = NULL;
-  dict->size = 0u;
+  dict->defs = NULL;
+  assert(invrep(dict));
   return dict;
 }
 
 static node_t create_node(string elem) {
-  node_t node = malloc(sizeof(*node));
-  node->text = elem;
-  node->next = NULL;
-  return node;
+  node_t new_node = NULL;
+  new_node = malloc(sizeof(*new_node));
+  assert(new_node != NULL);
+  new_node->str = elem;
+  new_node->next = NULL;
+  return new_node;
 }
 
 static node_t destroy_node(node_t node) {
-  node->next = NULL;
+  assert(node != NULL);
+  node->str = string_destroy(node->str);
   free(node);
-  node = NULL;
-  return node;
+  return NULL;
+}
+
+bool dict_is_empty(dict_t dict) {
+  return dict->words == NULL && dict->defs == NULL;
 }
 
 dict_t dict_add(dict_t dict, string word, string def) {
+  assert(invrep(dict));
+  if (dict_is_empty(dict)) { // Si esta vacio lo agrego de una
+    dict->words = create_node(word);
+    dict->defs = create_node(def);
+    dict->length++;
+  }
 
-  node_t palabra = create_node(word);
-  node_t definicion = create_node(def);
+  else { // Si no esta vacio tengo que ver donde agregarlo
+    int index = find_index_of_key(
+        dict, word); // Esto calculaba el indice de una palabra ya en el
+                     // diccionario, si la palabra no existe devuelve -1
 
-  int index = nodes_to_skip(dict, word);
+    if (index == -1) { // Si la palabra no existe, busco donde ponerla y lo hago
+      int skips = nodes_to_skip(dict, word); // Calculo donde ponerlo
 
-  node_t p_words = dict->words;
-  node_t p_defs = dict->definitions;
+      node_t word_to_add = create_node(word);
+      node_t def_to_add = create_node(def);
 
-  int i = 0;
-  while (i < index - 1) {
-    p_words = p_words->next;
-    p_defs = p_defs->next;
-  } // i == index - 1
+      if (skips == 0) { // No existe y debo ponerlo al principio
+        word_to_add->next = dict->words;
+        def_to_add->next = dict->defs;
 
-  palabra->next = p_words->next;
-  p_words->next = palabra;
+        dict->words = word_to_add;
+        dict->defs = def_to_add;
+      }
 
-  definicion->next = p_defs->next;
-  p_defs->next = definicion;
-  // meto g, index 6, hasta que i = 5 (p_words -> f, p_defs -> fdef)
-  // a    b    cde f    [ palabra ]    h    i    jk
-  // adef bdef ... fdef [ definicion ] hdef idef ...
-  dict->size++;
+      else { // skips != 0 // No existe y debo ponerlo en algun otro lugar mas
+             // adelante
+        node_t p = dict->words;
+        node_t q = dict->defs;
+
+        for (int i = 0; i < skips - 1; i++) { // Me paro hasta uno antes
+          p = p->next;
+          q = q->next;
+        } // p apunta al elemento skips - 1 en words
+          // q apunta al elemento skips - 1 en defs
+
+        // Y lo agrego, la palabra nueva apunta a lo que esta adelante
+        word_to_add->next = p->next;
+        def_to_add->next = q->next;
+
+        // Lo que esta atras apunta a la palabra nueva
+        p->next = word_to_add;
+        q->next = def_to_add;
+      }
+      dict->length++;
+    }
+
+    else { // if index != 1 La palabra ya existe y solo debo reemplazar la
+           // definicion
+      node_t q = dict->defs;
+      for (int i = 0; i < index; i++) {
+        q = q->next;
+      }
+      // q apunta al elemento i de defs
+      q->str = string_destroy(q->str); // Borro lo que habia antes
+      q->str = string_clone(def);      // Meto lo que tenia en el string def
+    }
+  }
+
+  assert(invrep(dict));
+  assert(string_eq(def, dict_search(dict, word)));
   return dict;
 }
 
 string dict_search(dict_t dict, string word) {
+  assert(invrep(dict));
 
-  node_t p = dict->words;
-  node_t q = dict->definitions;
+  if (dict_exists(dict, word)) {               // Si existe
+    int index = find_index_of_key(dict, word); // calculo el indice
+    node_t p = dict->defs;                     // comenzando desde el inicio
+    for (int i = 0; i < index; i++) {          // voy hasta alli
+      p = p->next;
+    }
 
-  while (p != NULL && !string_eq(p->text, word)) {
-    p = p->next;
-    q = q->next;
+    return p->str; // y leo lo que habia
   }
 
-  return (q != NULL) ? q->text : NULL;
+  else {
+    return NULL;
+  }
 }
 
 bool dict_exists(dict_t dict, string word) {
-  bool found = false;
-  node_t p = dict->words;
-  while (!found && p != NULL) {
-    found = string_eq(p->text, word);
-    p = p->next;
+  assert(invrep(dict));
+
+  bool exist = false;
+  if (!dict_is_empty(dict)) {
+    node_t palabra;
+    palabra = dict->words;
+    while (palabra != NULL && !exist) {
+      if (string_eq(palabra->str, word)) {
+        exist = true;
+      }
+      palabra = palabra->next;
+    }
   }
-  return found;
+
+  assert(invrep(dict));
+  return exist;
 }
 
-unsigned int dict_length(dict_t dict) { return dict->size; }
+unsigned int dict_length(dict_t dict) {
+  assert(invrep(dict));
+  return dict->length;
+}
 
 // removes the "index" element of the "list" list of nodes
 static node_t remove_on_index(node_t list, int index) {
-  node_t p = list;
-  node_t killme = NULL;
-  int i = 0u;
-  while (i < index - 1) {
-    p = p->next;
-    i++;
-  } // i == index - 1
-  killme = p->next;
-  p->next = p->next->next;
-  destroy_node(killme);
+  assert(list != NULL);
+  if (index != 0) {
+    node_t p = list;
+    node_t q;
+    for (int i = 0; i < index; i++) {
+      q = p;
+      p = p->next;
+    } // p -> elem esta en la posicion index
+      // q esta en la anterior
+      // q -> p -> elem_index
+    q->next = p->next;
+    p = destroy_node(p);
+  }
+
+  else { // index == 0, creo que tiene bug? anda pero no se
+    node_t p = list;
+    node_t q = p->next;
+    p = destroy_node(p);
+    return q;
+  }
   return list;
 }
 
 dict_t dict_remove(dict_t dict, string word) {
   assert(invrep(dict));
+
   int index = find_index_of_key(dict, word);
   if (index != -1) {
     dict->words = remove_on_index(dict->words, index);
-    dict->definitions = remove_on_index(dict->definitions, index);
-    dict->size--;
+    dict->defs = remove_on_index(dict->defs, index);
+    dict->length--;
   }
+
   assert(invrep(dict));
   return dict;
 }
 
 dict_t dict_remove_all(dict_t dict) {
-  node_t p = dict->words;
-  node_t pkillme = NULL;
-  node_t q = dict->definitions;
-  node_t qkillme = NULL;
+  assert(invrep(dict));
 
-  for (unsigned int i = 0u; i < dict_length(dict); i++) {
-    pkillme = p;
-    qkillme = q;
-    p = p->next;
-    q = q->next;
-    destroy_node(pkillme);
-    destroy_node(qkillme);
+  while (!dict_is_empty(dict)) {
+    dict = dict_remove(dict, dict->words->str);
   }
 
-  dict->definitions = NULL;
-  dict->words = NULL;
+  assert(invrep(dict));
   return dict;
 }
 
 void dict_dump(dict_t dict, FILE *file) {
-
-  /* COMPLETAR */
-  /* tip: use fprintf(file, "%s : %s\n", string_ref(word), string_ref(def)); to
-   * save to file  */
+  assert(invrep(dict));
   node_t p = dict->words;
-  node_t q = dict->definitions;
+  node_t q = dict->defs;
 
-  for (unsigned int i = 0u; i < dict_length(dict); i++) {
-    fprintf(file, "[W: %s | D: %s]", string_ref(p->text), string_ref(q->text));
+  for (unsigned int i = 0; i < dict->length; i++) {
+    fprintf(file, "%s : %s\n", string_ref(p->str), string_ref(q->str));
     p = p->next;
     q = q->next;
   }
 }
 
 dict_t dict_destroy(dict_t dict) {
+  assert(invrep(dict));
+
   dict = dict_remove_all(dict);
   free(dict);
   dict = NULL;
+
   return dict;
 }

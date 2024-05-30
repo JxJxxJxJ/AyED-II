@@ -90,4 +90,6 @@ dict_t dict_destroy(dict_t dict);
  * POS: {dict == NULL}
  */
 
+bool dict_is_empty(dict_t dict);
+
 #endif
