@@ -27,28 +27,17 @@ INVREP
 ============================================================================ */
 
 static bool invrep(pqueue q) {
-  bool b = false;
+  bool b = true;
 
-  if (q != NULL) {
-    b = true;
+  // si esta vacio o con 1 elemento ya es trivial
+
+  if (q->size >= 2) {
+    node_t p = q->front; // comienzo desde el inicio
+    while (p->next != NULL) {
+      b = p->priority >= p->next->priority;
+      p = p->next;
+    }
   }
-
-  // // Chequeo que la cola este ordenada segun prioridad // no la pude hacer
-  // // andar
-  // node_t p = q->front; // Comienzo desde el inicio
-  // //
-  // if (p != NULL) {         // q -> front apunta a un elemento
-  //   if (p->next == NULL) { // La pqueue solo tiene 1 elemento
-  //     b = true;
-  //   }
-
-  //   else if (p->next != NULL) {
-  //     while (p->next != NULL) {
-  //       b = b && p->priority >= p->next->priority;
-  //       p = p->next;
-  //     }
-  //   }
-  // }
 
   return b;
 }
@@ -88,11 +77,11 @@ static float calculate_priority(Character character) {
 
   // Calculo modificador
   float modificador = 0;
-  if (character_ctype(character) == 'a') {
+  if (character_ctype(character) == agile) {
     modificador = 1.5; // 150%
   }
 
-  else if (character_ctype(character) == 't') {
+  else if (character_ctype(character) == tank) {
     modificador = 0.8; // 80%
   }
 
