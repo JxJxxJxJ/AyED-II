@@ -31,6 +31,14 @@ static bool invrep(pqueue q) {
 
   // si esta vacio o con 1 elemento ya es trivial
 
+  if (q->size == 0) {
+    b = q->front == NULL;
+  }
+
+  if (q->size == 1) {
+    b = q->front != NULL && q->front->next == NULL;
+  }
+
   if (q->size >= 2) {
     node_t p = q->front; // comienzo desde el inicio
     while (p->next != NULL) {
